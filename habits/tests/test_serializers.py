@@ -2,8 +2,6 @@ from datetime import time, timedelta
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-from django.urls import reverse
-from rest_framework import status
 from rest_framework.exceptions import ValidationError
 
 from habits.models import Habit
@@ -23,7 +21,6 @@ class HabitSerializerTest(TestCase):
             "is_pleasant_habit": False,
             "reward": "smile",
             "place": "Home",
-            # поле user не указываем, т.к. оно read_only
         }
 
     def test_serialization(self):

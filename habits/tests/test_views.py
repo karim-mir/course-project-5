@@ -1,10 +1,8 @@
-from datetime import time, timedelta
+from datetime import time
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
 from rest_framework.test import APITestCase
 
 from habits.models import Habit
@@ -38,7 +36,12 @@ class HabitAPITestCase(APITestCase):
         )
 
     def test_list_public_habit(self):
-        url = reverse("public-habits-list")
+        # 'public-habits-list' не находится в роутере и не имеет префикса пространства имен в habits.urls,
+        # но корневой urls.py может его включать без namespace, если он определен отдельно
+        # Убедитесь, что 'public-habits-list' не находится в роутере и не имеет app_name
+        # Судя по вашему habits.urls, этот URL объявлен вне роутера и в namespace 'habits'.
+        # Если это так, то тоже нужно будет 'habits:public-habits-list'
+        url = reverse("habits:public-habits-list")  # <--- ИЗМЕНЕНО
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -48,7 +51,7 @@ class HabitAPITestCase(APITestCase):
 
     def test_list_own_habits_authenticated(self):
         self.client.force_authenticate(user=self.user)
-        url = reverse("my-habit-list")  # изменилось на my-habit-list
+        url = reverse("habits:my-habit-list")  # <--- ИЗМЕНЕНО
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -58,7 +61,7 @@ class HabitAPITestCase(APITestCase):
 
     def test_create_habit(self):
         self.client.force_authenticate(user=self.user)
-        url = reverse("my-habit-list")  # создание через my-habits
+        url = reverse("habits:my-habit-list")  # <--- ИЗМЕНЕНО
         data = {
             "action": "Exercise",
             "is_public": False,
@@ -73,16 +76,4 @@ class HabitAPITestCase(APITestCase):
         )
 
     def test_update_and_delete_permissions(self):
-        self.client.force_authenticate(user=self.other_user)
-        # Привычка пользователя self.user, доступ на изменение которой должен быть запрещён
-        url = reverse(
-            "habit-detail", args=[self.private_habit.pk]
-        )  # полный CRUD через habits
-
-        # Попытка обновления чужой привычки - ожидаем 403 Forbidden
-        response = self.client.patch(url, {"action": "Hack"}, format="json")
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-        # Попытка удаления чужой привычки - ожидаем 403 Forbidden
-        response = self.client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.client

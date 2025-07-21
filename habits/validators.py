@@ -13,9 +13,7 @@ def validate_time_to_complete(value):
     max_seconds = 120
     total_seconds = value.total_seconds()
     if total_seconds <= 0:
-        raise ValidationError(
-            _("Время выполнения должно быть положительным числом.")
-        )
+        raise ValidationError(_("Время выполнения должно быть положительным числом."))
     if total_seconds > max_seconds:
         raise ValidationError(
             _("Время выполнения не должно превышать 120 секунд (2 минуты).")
@@ -42,4 +40,6 @@ def validate_associated_habits(habit_instance):
                 _("У приятной привычки не может быть вознаграждения.")
             )
         if associated:
-            raise ValidationError(_("У приятной привычки не может быть связанных привычек."))
+            raise ValidationError(
+                _("У приятной привычки не может быть связанных привычек.")
+            )

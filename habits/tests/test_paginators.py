@@ -1,11 +1,13 @@
-from rest_framework.test import APITestCase
-from django.urls import reverse
-
-from habits.models import Habit
-from django.contrib.auth import get_user_model
 from datetime import time, timedelta
 
+from django.contrib.auth import get_user_model
+from django.urls import reverse
+from rest_framework.test import APITestCase
+
+from habits.models import Habit
+
 User = get_user_model()
+
 
 class HabitPaginationTest(APITestCase):
     def setUp(self):
@@ -21,26 +23,30 @@ class HabitPaginationTest(APITestCase):
         self.client.force_authenticate(user=self.user)
 
     def test_default_page_size(self):
-        url = reverse('my-habit-list')
+        # Использование 'habits:my-habit-list'
+        url = reverse("habits:my-habit-list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data['results']), 5)  # по умолчанию 5
+        self.assertEqual(len(response.data["results"]), 5)  # по умолчанию 5
 
     def test_custom_page_size_within_limit(self):
-        url = reverse('my-habit-list') + '?page_size=10'
+        # Использование 'habits:my-habit-list'
+        url = reverse("habits:my-habit-list") + "?page_size=10"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data['results']), 10)
+        self.assertEqual(len(response.data["results"]), 10)
 
     def test_page_size_above_max(self):
-        url = reverse('my-habit-list') + '?page_size=50'
+        # Использование 'habits:my-habit-list'
+        url = reverse("habits:my-habit-list") + "?page_size=50"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data['results']), 20)  # max_page_size=20
+        self.assertEqual(len(response.data["results"]), 20)  # max_page_size=20
 
     def test_pagination_page_two(self):
-        url = reverse('my-habit-list') + '?page=2'
+        # Использование 'habits:my-habit-list'
+        url = reverse("habits:my-habit-list") + "?page=2"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         # Проверяем, что возвращается следующая порция результатов (оставшиеся элементы)
-        self.assertGreaterEqual(len(response.data['results']), 1)
+        self.assertGreaterEqual(len(response.data["results"]), 1)

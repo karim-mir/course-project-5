@@ -1,11 +1,13 @@
 from datetime import time, timedelta
+
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.test import TestCase
-from django.contrib.auth import get_user_model
 
 from habits.models import Habit
 
 User = get_user_model()
+
 
 class HabitModelTest(TestCase):
     def setUp(self):
@@ -28,21 +30,11 @@ class HabitModelTest(TestCase):
         )
 
     def test_str_method_with_place(self):
-        habit = Habit(
-            user=self.user,
-            action="Walk",
-            time=time(6, 30),
-            place="Park"
-        )
+        habit = Habit(user=self.user, action="Walk", time=time(6, 30), place="Park")
         self.assertEqual(str(habit), "Я буду Walk в 06:30:00 в Park")
 
     def test_str_method_without_place(self):
-        habit = Habit(
-            user=self.user,
-            action="Run",
-            time=time(6, 30),
-            place=None
-        )
+        habit = Habit(user=self.user, action="Run", time=time(6, 30), place=None)
         self.assertEqual(str(habit), "Я буду Run в 06:30:00 в ...")
 
     def test_validate_periodicity_valid(self):
@@ -114,7 +106,10 @@ class HabitModelTest(TestCase):
 
         with self.assertRaises(ValidationError) as cm:
             habit.clean()
-        self.assertIn("Нельзя указывать одновременно вознаграждение и связанные привычки", str(cm.exception))
+        self.assertIn(
+            "Нельзя указывать одновременно вознаграждение и связанные привычки",
+            str(cm.exception),
+        )
 
     def test_validate_associated_habits_non_pleasant_related(self):
         habit = Habit(
@@ -158,13 +153,17 @@ class HabitModelTest(TestCase):
         try:
             habit.clean()
         except ValidationError:
-            self.fail("Проверка clean() упала для приятной привычки без награды и связанных")
+            self.fail(
+                "Проверка clean() упала для приятной привычки без награды и связанных"
+            )
 
         # Нельзя, если есть reward
         habit.reward = "Some reward"
         with self.assertRaises(ValidationError) as cm:
             habit.clean()
-        self.assertIn("У приятной привычки не может быть вознаграждения", str(cm.exception))
+        self.assertIn(
+            "У приятной привычки не может быть вознаграждения", str(cm.exception)
+        )
 
         # Сбросим reward и добавим associated
         habit.reward = ""
@@ -182,4 +181,6 @@ class HabitModelTest(TestCase):
 
         with self.assertRaises(ValidationError) as cm:
             habit.clean()
-        self.assertIn("У приятной привычки не может быть связанных привычек", str(cm.exception))
+        self.assertIn(
+            "У приятной привычки не может быть связанных привычек", str(cm.exception)
+        )
