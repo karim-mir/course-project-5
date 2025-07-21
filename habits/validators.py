@@ -23,7 +23,7 @@ def validate_time_to_complete(value):
 
 
 def validate_associated_habits(habit_instance):
-    reward_filled = bool(habit_instance.reward)
+    reward_filled = bool(habit_instance.reward and habit_instance.reward.strip())
     associated = habit_instance.associated_habits.all() if habit_instance.pk else []
 
     if reward_filled and associated:
@@ -42,6 +42,4 @@ def validate_associated_habits(habit_instance):
                 _("У приятной привычки не может быть вознаграждения.")
             )
         if associated:
-            raise ValidationError(
-                _("У приятной привычки не может быть связанных привычек.")
-            )
+            raise ValidationError(_("У приятной привычки не может быть связанных привычек."))

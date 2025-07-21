@@ -35,7 +35,7 @@ class HabitViewSet(viewsets.ModelViewSet):
 
 
 class MyHabitViewSet(
-    mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
+    mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet
 ):
     serializer_class = HabitSerializer
     pagination_class = HabitPagination

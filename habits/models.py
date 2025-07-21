@@ -67,7 +67,8 @@ class Habit(models.Model):
     )
 
     def clean(self):
-        # Валидируем связи между полями
+        if self.reward is not None:
+            self.reward = self.reward.strip()
         validate_associated_habits(self)
 
     def save(self, *args, **kwargs):
