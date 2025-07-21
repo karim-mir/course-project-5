@@ -11,7 +11,12 @@ def validate_periodicity(value):
 
 def validate_time_to_complete(value):
     max_seconds = 120
-    if value.total_seconds() > max_seconds:
+    total_seconds = value.total_seconds()
+    if total_seconds <= 0:
+        raise ValidationError(
+            _("Время выполнения должно быть положительным числом.")
+        )
+    if total_seconds > max_seconds:
         raise ValidationError(
             _("Время выполнения не должно превышать 120 секунд (2 минуты).")
         )

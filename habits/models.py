@@ -1,11 +1,8 @@
 from django.conf import settings
 from django.db import models
 
-from habits.validators import (
-    validate_associated_habits,
-    validate_periodicity,
-    validate_time_to_complete,
-)
+from habits.validators import (validate_associated_habits,
+                               validate_periodicity, validate_time_to_complete)
 
 
 class Habit(models.Model):
@@ -78,7 +75,7 @@ class Habit(models.Model):
         super().save(*args, **kwargs)
 
     class Meta:
-        ordering = ['id']
+        ordering = ["id"]
         verbose_name = "Привычка"
         verbose_name_plural = "Привычки"
 
