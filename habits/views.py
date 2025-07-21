@@ -1,5 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import generics, permissions, viewsets
+from rest_framework import generics, permissions, viewsets, mixins
 
 from .models import Habit
 from .paginators import HabitPagination
@@ -23,11 +23,25 @@ class HabitViewSet(viewsets.ModelViewSet):
     pagination_class = HabitPagination
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnlyForPublic]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["is_public"]  # опционально, если нужно фильтровать
+    filterset_fields = ['is_public']
 
     def get_queryset(self):
-        user = self.request.user
-        return Habit.objects.filter(user=user)
+        # Возвращаем все привычки, чтобы при доступе к detail DRF мог найти объект
+        # Проверка прав через IsOwnerOrReadOnlyForPublic контролирует доступ на изменение
+        return Habit.objects.all().order_by('id')
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class MyHabitViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
+    serializer_class = HabitSerializer
+    pagination_class = HabitPagination
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        # Показываем и создаём привычки только текущего пользователя
+        return Habit.objects.filter(user=self.request.user).order_by('id')

@@ -78,6 +78,7 @@ class Habit(models.Model):
         super().save(*args, **kwargs)
 
     class Meta:
+        ordering = ['id']
         verbose_name = "Привычка"
         verbose_name_plural = "Привычки"
 
