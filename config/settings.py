@@ -93,3 +93,9 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
+
+#Celery settings
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+
+#Telegram-bot-settings
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")

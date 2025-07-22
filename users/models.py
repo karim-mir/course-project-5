@@ -32,6 +32,11 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, verbose_name="Email")
+    telegram_chat_id = models.BigIntegerField(
+        verbose_name="Telegram Chat ID",
+        null=True, blank=True,
+        help_text="Chat ID пользователя Telegram для отправки уведомлений"
+    )
     objects = UserManager()
     avatar = models.ImageField(
         upload_to="users/avatars/",
