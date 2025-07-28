@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from asgiref.sync import sync_to_async
 from django.contrib.auth import get_user_model
@@ -20,7 +20,19 @@ class Command(BaseCommand):
         TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
         User = get_user_model()
 
-        # Обернём функцию получения пользователя в sync_to_async
+        async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            help_text = (
+                "Доступные команды:\n"
+                "/start - Приветствие и инструкция по регистрации\n"
+                "/register <email> - Привязать аккаунт через email\n"
+                "/habits - Показать список ваших привычек\n"
+                "/addhabit <название> <время в формате ЧЧ:ММ> <время на выполнение (ЧЧ:ММ:СС)> - Добавить новую привычку\n"
+                "/help - Показать это сообщение\n"
+                "\nПример добавления привычки:\n"
+                "/addhabit Утренняя зарядка 07:00 00:01:30"
+            )
+            await update.message.reply_text(help_text)
+
         @sync_to_async
         def get_user_by_email(email):
             return User.objects.get(email=email)
@@ -88,12 +100,12 @@ class Command(BaseCommand):
             message = "Ваши привычки:\n"
             keyboard = []
             for habit in habits:
-                message += f"- {habit.title} в {habit.time.strftime('%H:%M')}\n"
+                message += f"- {habit.action} в {habit.time.strftime('%H:%M')}\n"
                 # Добавим кнопку удаления рядом с каждой привычкой
                 keyboard.append(
                     [
                         InlineKeyboardButton(
-                            f"Удалить {habit.title}", callback_data=f"delete_{habit.id}"
+                            f"Удалить {habit.action}", callback_data=f"delete_{habit.id}"
                         )
                     ]
                 )
@@ -123,7 +135,7 @@ class Command(BaseCommand):
 
                 try:
                     habit = await sync_to_async(user.habit_set.get)(id=habit_id)
-                except Habit.DoesNotExist:  # Или Habit.DoesNotExist
+                except Habit.DoesNotExist:
                     await query.edit_message_text("Ошибка: привычка не найдена.")
                     return
 
@@ -133,21 +145,32 @@ class Command(BaseCommand):
         # Команда для добавления привычки
         async def addhabit(update: Update, context: ContextTypes.DEFAULT_TYPE):
             args = context.args
-            if len(args) < 2:
+            if len(args) < 3:
                 await update.message.reply_text(
-                    "Использование: /addhabit <название> <время в формате ЧЧ:ММ>.\n"
-                    "Пример: /addhabit Утренняя зарядка 07:00"
+                    "Использование: /addhabit <название> <время в формате ЧЧ:ММ> <время на выполнение (ЧЧ:ММ:СС)>.\n"
+                    "Пример: /addhabit Утренняя зарядка 07:00 00:15:00"
                 )
                 return
 
-            title = " ".join(args[:-1])
-            time_str = args[-1]
+            # Объединяем все кроме двух последних args в название привычки (для названий из нескольких слов)
+            title = " ".join(args[:-2])
+            time_str = args[-2]
+            duration_str = args[-1]
 
             try:
                 habit_time = datetime.strptime(time_str, "%H:%M").time()
             except ValueError:
                 await update.message.reply_text(
-                    "Время должно быть в формате ЧЧ:ММ, например 07:00"
+                    "Время напоминания должно быть в формате ЧЧ:ММ, например 07:00"
+                )
+                return
+
+            try:
+                h, m, s = map(int, duration_str.split(":"))
+                time_to_complete = timedelta(hours=h, minutes=m, seconds=s)
+            except Exception:
+                await update.message.reply_text(
+                    "Время на выполнение должно быть в формате ЧЧ:ММ:СС, например 00:15:00"
                 )
                 return
 
@@ -161,14 +184,20 @@ class Command(BaseCommand):
                 )
                 return
 
-            habit = Habit(title=title, time=habit_time, user=user)
+            habit = Habit(
+                action=title,
+                time=habit_time,
+                time_to_complete=time_to_complete,
+                user=user,
+            )
             await sync_to_async(habit.save)()
 
             await update.message.reply_text(
-                f"Привычка '{title}' на {habit_time.strftime('%H:%M')} добавлена."
+                f"Привычка '{title}' на {habit_time.strftime('%H:%M')} добавлена с временем выполнения {duration_str}."
             )
 
         application = ApplicationBuilder().token(TOKEN).build()
+        application.add_handler(CommandHandler("help", help_command))
         application.add_handler(CommandHandler("start", start))
         application.add_handler(CommandHandler("register", register))
         application.add_handler(CommandHandler("habits", habits))
