@@ -23,6 +23,8 @@ INSTALLED_APPS = [
     "users",
     "habits",
     "drf_yasg",
+    "rest_framework",
+    "rest_framework.authtoken",
 ]
 
 MIDDLEWARE = [
@@ -94,8 +96,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
 
-#Celery settings
+# Celery settings
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 
-#Telegram-bot-settings
+# Telegram-bot-settings
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
