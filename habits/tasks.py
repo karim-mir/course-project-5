@@ -1,12 +1,15 @@
-from celery import shared_task
-from django.utils import timezone
-from habits.models import Habit
-from telegram import Bot
-from django.conf import settings
 from datetime import timedelta
+
+from celery import shared_task
+from django.conf import settings
+from django.utils import timezone
+from telegram import Bot
+
+from habits.models import Habit
 
 # Инициализация бота
 bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
+
 
 @shared_task
 def send_habit_reminders():
@@ -15,9 +18,7 @@ def send_habit_reminders():
     end_time = now + timedelta(minutes=5)
 
     habits_to_remind = Habit.objects.filter(
-        time__gte=start_time.time(),
-        time__lte=end_time.time(),
-        is_public=False
+        time__gte=start_time.time(), time__lte=end_time.time(), is_public=False
     )
 
     for habit in habits_to_remind:
