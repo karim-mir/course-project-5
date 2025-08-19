@@ -1,0 +1,15 @@
+**
+!config
+!users
+!manage.py
+!poetry.lock
+!pyproject.toml
+
+venv/
+*.log
+__pycache__/
+*.pyc
+.idea/
+.vscode/
+*.swp
+.env
