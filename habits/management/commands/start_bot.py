@@ -105,7 +105,8 @@ class Command(BaseCommand):
                 keyboard.append(
                     [
                         InlineKeyboardButton(
-                            f"Удалить {habit.action}", callback_data=f"delete_{habit.id}"
+                            f"Удалить {habit.action}",
+                            callback_data=f"delete_{habit.id}",
                         )
                     ]
                 )
