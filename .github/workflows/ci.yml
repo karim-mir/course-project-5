@@ -35,6 +35,9 @@ jobs:
       - name: Print PostgreSQL logs
         run: docker logs ${{ job.services.db.id }}
 
+      - name: Print environment variables
+        run: env | grep DB
+
       - name: Wait for PostgreSQL
         run: |
           until pg_isready -h db -p 5432 -U ${{ secrets.DB_USER }}; do
