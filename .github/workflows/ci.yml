@@ -38,6 +38,8 @@ jobs:
         run: poetry run flake8 .
 
       - name: Run tests
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings
         run: poetry run pytest
 
   build-and-push:
