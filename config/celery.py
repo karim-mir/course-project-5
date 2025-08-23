@@ -2,6 +2,9 @@ import os
 
 from celery import Celery
 from celery.schedules import crontab
+from dotenv import load_dotenv
+
+load_dotenv()
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
@@ -17,5 +20,5 @@ app.conf.beat_schedule = {
     },
 }
 
-app.conf.broker_url = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
-app.conf.result_backend = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/1")
+app.conf.broker_url = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
+app.conf.result_backend = os.getenv("CELERY_RESULT_BACKEND", "redis://redis:6379/1")
