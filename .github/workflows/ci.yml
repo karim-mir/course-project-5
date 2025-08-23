@@ -10,21 +10,23 @@ jobs:
       db:
         image: postgres:15.1-alpine
         env:
-          POSTGRES_USER: ${{ secrets.DB_USER }}
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.DB_NAME }}
+          POSTGRES_DB: spa-services
         options: >-
-          --health-cmd pg_isready -U postgres -d spa-services
+          --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        ports:
+          - 5432:5432
 
     steps:
       - uses: actions/checkout@v3
 
       - uses: actions/setup-python@v4
         with:
-          python-version: 3.12
+          python-version: '3.12'
 
       - name: Install dependencies
         run: |
@@ -32,10 +34,10 @@ jobs:
           pip install poetry
           poetry install
 
-      - name: Wait for Postgres to be healthy
+      - name: Wait for Postgres to be ready
         run: |
-          until pg_isready -h db -p 5432 -U ${{ secrets.DB_USER }} -d ${{ secrets.DB_NAME }}; do
-            echo "Waiting for PostgreSQL to be ready..."
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for postgres..."
             sleep 5
           done
         env:
@@ -45,10 +47,10 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: config.settings
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
+          DB_NAME: spa-services
+          DB_USER: postgres
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: db
+          DB_HOST: localhost
           DB_PORT: 5432
         run: poetry run python manage.py migrate
 
@@ -56,10 +58,10 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: config.settings
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
+          DB_NAME: spa-services
+          DB_USER: postgres
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: db
+          DB_HOST: localhost
           DB_PORT: 5432
         run: poetry run pytest
 
