@@ -37,6 +37,7 @@ jobs:
 
       - name: Print environment variables
         run: env | grep DB
+        continue-on-error: true
 
       - name: Wait for PostgreSQL
         run: |
