@@ -98,7 +98,7 @@ jobs:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "docker-compose.yml,.env"  # запишите без новых строк
+          source: "docker-compose.yaml,.env"
           target: /home/${{ secrets.SERVER_USER }}/courseproject5
 
       - name: Run docker compose on server
