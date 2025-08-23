@@ -94,10 +94,11 @@ jobs:
       - name: Copy docker-compose files to server
         uses: appleboy/scp-action@master
         with:
+          debug: true
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "docker-compose.yml,.env"
+          source: "docker-compose.yml,.env"  # запишите без новых строк
           target: /home/${{ secrets.SERVER_USER }}/courseproject5
 
       - name: Run docker compose on server
