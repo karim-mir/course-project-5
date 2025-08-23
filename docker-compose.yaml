@@ -79,7 +79,7 @@ services:
       - backend
       - static_collector
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx.conf:/etc/nginx/nginx.conf
       - django_static:/usr/share/nginx/html/static/
 
 
