@@ -32,12 +32,17 @@ jobs:
       # Подождать, чтобы база точно была готова
       - run: sleep 30
 
+      - name: Print PostgreSQL logs
+        run: docker logs ${{ job.services.db.id }}
+
       - name: Wait for PostgreSQL
         run: |
-          until pg_isready -h db; do
+          until pg_isready -h db -p 5432 -U ${{ secrets.DB_USER }}; do
             echo "Waiting for database..."
             sleep 2
           done
+        env:
+          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
 
       - name: Run migrations
         env:
