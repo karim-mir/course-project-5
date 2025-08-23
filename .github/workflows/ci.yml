@@ -40,11 +40,13 @@ jobs:
       - name: Run migrations
         env:
           DJANGO_SETTINGS_MODULE: config.settings
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
         run: poetry run python manage.py migrate
 
       - name: Run tests
         env:
           DJANGO_SETTINGS_MODULE: config.settings
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
         run: poetry run python manage.py pytest
 
   build-and-push:
