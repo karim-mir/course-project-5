@@ -37,7 +37,7 @@ services:
       DB_PORT: ${POSTGRES_PORT}
       REDIS_URL: redis://redis:6379
     ports:
-      - "8080:8000"
+      - "8000:8000"
     depends_on:
       - db
       - redis
