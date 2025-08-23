@@ -5,25 +5,41 @@ on: [ push, pull_request ]
 jobs:
   test:
     runs-on: ubuntu-latest
+
     services:
       db:
-        image: postgres:15
+        image: postgres:15.1-alpine
         env:
           POSTGRES_USER: ${{ secrets.DB_USER }}
           POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
           POSTGRES_DB: ${{ secrets.DB_NAME }}
         options: >-
+          --health-cmd pg_isready -U ${{ secrets.DB_USER }} -d ${{ secrets.DB_NAME }}
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
     steps:
-      - name: Print Postgres logs
-        run: docker logs ${{ job.services.db.id }}
-      - name: Wait for postgres
-        run: sleep 30
-      - name: Test connection
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+
+      - name: Install dependencies
         run: |
-          psql postgresql://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@db:5432/${{ secrets.DB_NAME }} -c '\l'
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install
+
+      - name: Wait for Postgres to be healthy
+        run: |
+          until pg_isready -h db -p 5432 -U ${{ secrets.DB_USER }} -d ${{ secrets.DB_NAME }}; do
+            echo "Waiting for PostgreSQL to be ready..."
+            sleep 5
+          done
+        env:
+          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
 
       - name: Run migrations
         env:
@@ -38,57 +54,4 @@ jobs:
 
       - name: Run tests
         env:
-          DJANGO_SETTINGS_MODULE: config.settings
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: db
-          DB_PORT: 5432
-        run: poetry run pytest
-
-  build-and-push:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Docker login
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-
-      - name: Build and push Docker images
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/courseproject5:latest
-
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Copy docker-compose files to server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          source: |
-            docker-compose.yml
-            .env
-          target: /home/${{ secrets.SERVER_USER }}/courseproject5
-
-      - name: Run docker compose on server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            cd /home/${{ secrets.SERVER_USER }}/courseproject5
-            docker compose pull
-            docker compose up -d --build
+          DJANGO_SETTINGS_MODULE: config
