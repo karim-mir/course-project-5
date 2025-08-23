@@ -88,10 +88,9 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Copy docker-compose files to server
+      - name: Copy docker-compose.yaml and .env to server
         uses: appleboy/scp-action@master
         with:
           debug: true
@@ -101,7 +100,16 @@ jobs:
           source: "docker-compose.yaml,.env"
           target: /home/${{ secrets.SERVER_USER }}/courseproject5
 
-      - name: Run docker compose on server
+      - name: List files on server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            ls -la /home/${{ secrets.SERVER_USER }}/courseproject5
+
+      - name: Run docker compose
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
